@@ -2,8 +2,12 @@ import express, { Application } from "express";
 import cors from "cors"
 import { readFile, writeFile } from "fs/promises"
 import { stringSimilarity } from "string-similarity-js";
+import http from "http"
+import { Server } from "socket.io"
 
 const app: Application = express();
+const server = http.createServer(app)
+const io = new Server(server)
 
 app.use(cors())
 app.use(express.static("../pijanka.APP.1.0/")) //GITHUB PAGES
@@ -157,6 +161,7 @@ app.get("/api/event/songs/:eventID/:songID", async function (req, resp) {
             listened.push(song)
             writeToPath(pathToListened, JSON.stringify(listened))
 
+            io.emit('last ordered', song.name);
             resp.send({})
         }
 
@@ -188,7 +193,7 @@ app.get("/api/event/last/:eventID", async function (req, resp) {
 //server
 const PORT = 5000
 
-app
+server
     .listen(PORT, function () {
         console.log(`Server is running on port ${PORT}.`);
     })
@@ -228,3 +233,20 @@ async function uredi() {
     }
     writeToPath("songs.json", JSON.stringify(newSongs))
 }
+
+io.on('connection', function (socket) {
+
+    socket.on('last ordered', async function (msg: any) {
+        let path = msg + "listened_songs.json"
+
+        let songs: Song[] = await readFromPath(path)
+        if (songs.length >= 1) {
+            let song: Song = songs[songs.length - 1]
+
+            io.emit('last ordered', song.name);
+        } else {
+            io.emit('last ordered', "");
+        }
+
+    });
+});
