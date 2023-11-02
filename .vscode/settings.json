@@ -1,0 +1,11 @@
+{
+    "sqltools.useNodeRuntime": true,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "${workspaceFolder:pijanka.server.1.0}/pijanka.db",
+            "name": "DB"
+        }
+    ]
+}
